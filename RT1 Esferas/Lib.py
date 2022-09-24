@@ -1,0 +1,112 @@
+# Universidad del Valle de Guatemala
+# Christopher García 20541 
+# Gráficas por computadora (10)
+# #Raytracing environment
+
+import struct
+
+def char(c):
+    # 1 bytes
+    return struct.pack('=c', c.encode('ascii'))
+    
+def word(w):
+    # 2 bytes
+    return struct.pack('=h', w)
+    
+def dword(d):
+    # 4 bytes
+    return struct.pack('=l', d)
+
+def color(r, g, b):
+    return bytes([b, g, r])
+
+def writebmp(filename, width, height, framebuffer):
+        f = open(filename, 'bw')
+    
+        #pixel header
+        f.write(char('B'))
+        f.write(char('M'))
+        f.write(dword((14 + 40) + width * height * 3))
+        f.write(word(0))
+        f.write(word(0))
+        f.write(dword(14 + 40))
+        
+        #info header
+        f.write(dword(40))
+        f.write(dword(width))
+        f.write(dword(height))
+        f.write(word(1))
+        f.write(word(24))
+        f.write(dword(0))
+        f.write(dword(width * height * 3))
+        f.write(dword(0))
+        f.write(dword(0))
+        f.write(dword(0))
+        f.write(dword(0))
+        
+        #pixel data
+        for x in range(width):
+            for y in range(height):
+                f.write(framebuffer[y][x])
+                
+        f.close()
+
+class V3(object):
+    def __init__(self, x, y, z=0):
+        self.x = x
+        self.y = y
+        self.z = z
+        
+    def round(self):
+        self.x = round(self.x)
+        self.y = round(self.y)
+        self.z = round(self.z)
+        
+    def __add__(self, other):
+        return V3(
+            self.x + other.x,
+            self.y + other.y,
+            self.z + other.z
+        )
+    
+    def __sub__(self, other):
+        return V3(
+            self.x - other.x,
+            self.y - other.y,
+            self.z - other.z
+        )
+        
+    def __mul__(self, other):
+        if(type(other) == int or type(other) == float):
+            return V3(
+                self.x * other,
+                self.y * other,
+                self.z * other
+            )
+        
+        return V3(
+            self.y * other.z - self.z * other.y,
+            self.z * other.x - self.x * other.z,
+            self.x * other.y - self.y * other.x
+        )
+        
+    def __matmul__(self, other):
+        if (type(other) == V3):
+            return ((self.x * other.x) + (self.y * other.y) + (self.z * other.z))    
+        
+    def length(self):
+        return (self.x**2 + self.y**2 + self.z**2)**0.5    
+    
+    def norm(self):
+        return self * (1/self.length())
+            
+    def __repr__(self):
+        return "V3(%s, %s, %s)" % (self.x, self.y, self.z)
+    
+    def cross(v1,v2):
+        return (
+            v1.y * v2.z - v1.z * v2.y,
+            v1.z * v2.x - v1.x * v2.z,
+            v1.x * v2.y - v1.y * v2.x
+        )
+
